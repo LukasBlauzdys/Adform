@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+  squares:
+    image: ${DOCKER_REGISTRY-}squares
+    build:
+      context: .
+      dockerfile: Squares/Dockerfile
+    ports:
+      - "8080:8080"
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    command: mongod --auth --bind_ip_all
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    environment:
+      MONGO_INITDB_DATABASE: Squares
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pwd1
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=yourpassword
+    volumes:
+      - grafana_data:/var/lib/grafa
+
+volumes:
+   mongodb-data:
+    driver: local
+   grafana_data:
+    driver: local
